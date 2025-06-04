@@ -1,0 +1,3 @@
+/home/mgl1kor/git_repositories/pjvecu/onesilcontroller/mockCanoeSW/build/CMakeFiles/rebuild_cache.dir
+/home/mgl1kor/git_repositories/pjvecu/onesilcontroller/mockCanoeSW/build/CMakeFiles/edit_cache.dir
+/home/mgl1kor/git_repositories/pjvecu/onesilcontroller/mockCanoeSW/build/CMakeFiles/mockCanoeSW.dir

@@ -1,0 +1,27 @@
+/**
+ * @file 
+ * @version 1.0.0
+ * @author  dab7kor (Abhilash Das)
+ *
+ * Global Versioninfo.
+ * Build_Number is automatically set by Nightly build
+ * Product_VersMajor, Product_VersMinor, Product_VersRelease, Product_VersBuild, Product_Name and Current_Year is set by script
+ */
+
+#pragma once
+ 
+// SVN info
+#define  RELEASE_BUILD_NUM         $BuildNumber$
+#define  RELEASE_BUILD_NUM_STR    "$BuildNumber$"
+
+// Global version infos
+#define PROJECT_COMPANY_NAME_STR     "Robert Bosch GmbH"
+#define PROJECT_COPYRIGHT_STR        "Copyright (C) $CurrentYear$ Robert Bosch GmbH"
+#define PROJECT_PRODUCT_VERSION       $ProductVersMajor$,$ProductVersMinor$,$ProductVersRelease$,$ProductVersBuild$
+#define PROJECT_PRODUCT_VERSION_STR  "$ProductVersMajor$.$ProductVersMinor$.$ProductVersRelease$.$ProductVersBuild$"
+#define PROJECT_PRODUCT_NAME_STR     "$ProductName$"
+#define PROJECT_PRODUCTVERSMAJOR      $ProductVersMajor$
+#define PROJECT_PRODUCTVERSMINOR      $ProductVersMinor$
+#define PROJECT_PRODUCTVERSRELEASE    $ProductVersRelease$
+#define PROJECT_MAJ_MIN_REL_STR      "$ProductVersMajor$.$ProductVersMinor$.$ProductVersRelease$."
+
