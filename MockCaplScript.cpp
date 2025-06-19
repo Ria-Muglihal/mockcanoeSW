@@ -5,20 +5,15 @@
 #include "MockCaplSystem.h"
 #include "MockMessages.h"
 
-//
 extern bool blockSendingTick;
 extern bool blockSendingData;
 
-
-//
 bool reset = false;
 bool something = false;
 
-// Constants
 constexpr int SIM_NORESET = 0;
 constexpr int master = 1;
 
-// Globals
 char ipaddress[16] = "127.0.0.1";
 int port = 2019;
 double stepsize = 5.0;
@@ -26,7 +21,6 @@ int sim_reset = SIM_NORESET;
 int gHandle = 0;
 void *glibHandle = nullptr;
 
-// class instance
 MockCapl mockCapl;
 
 typedef void (*RegisterCDLLFunc)(VIACapl *);
@@ -40,9 +34,16 @@ typedef void (*SetCanFrameFunc)( uint32 handle,unsigned long channel,
                                 unsigned long fdf, unsigned long brs,
                                 unsigned long esi, unsigned char payload[]);
 
+void setParameter()
+{
+    SetParamFunc setParamCAPLDLL = (SetParamFunc)dlsym(glibHandle, "_Z8SetParamjj");
+    setParamCAPLDLL(0xBEEF, sim_reset); 
+}
+
 void onPreStart()
 {
     glibHandle = dlopen("/home/mgl1kor/git_repositories/pjvecu/onesilcontroller/mockCanoeSW/libs/libcaplserver.so", RTLD_LAZY);
+    
     if (!glibHandle)
     {
         fprintf(stderr, "dlopen failed: %s\n", dlerror());
@@ -60,53 +61,18 @@ void onPreStart()
     registerCAPLDLL(&mockCapl);
 }
 
-void setParameter()
-{
-    SetParamFunc setParamCAPLDLL = (SetParamFunc)dlsym(glibHandle, "_Z8SetParamjj");
-    setParamCAPLDLL(0xBEEF, sim_reset); // needs 2019 port
-}
-
 void onstart()
 {    
     InitializeFunc initCAPLDLL = (InitializeFunc)dlsym(glibHandle, "_Z7appInitjPcjj");
-    initCAPLDLL(0xBEEF, ipaddress, port, master); //2019 3-way handshake established
-    
+    initCAPLDLL(0xBEEF, ipaddress, port, master); 
     std::cout << "Capl DLL Initialization: Done!" << std::endl;
-    
     setParameter();    
 }
 
 void onAnyCanMessage(CanMessage& msg)
 {
-    
-    SetCanFrameFunc setCanFrame = (SetCanFrameFunc)dlsym(glibHandle,"_Z11setCanFramejmmmxmmmmmmPh");
-    
-    setCanFrame(0xBEEF,
-                msg.channel,
-                msg.direction,
-                msg.id,
-                msg.timestamp_ns,
-                msg.type,
-                msg.dlc,
-                msg.rtr,
-                msg.fdf,
-                msg.brs,
-                msg.esi,
-                msg.data);
-}
-
-void setReset()
-{
-    while(!reset)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2)); 
-    }
-
-    sim_reset = 4;
-    setParameter();
-    std::cout << "reset complete" << std::endl;
-    
-    something = true;
+    SetCanFrameFunc setCanFrame = (SetCanFrameFunc)dlsym(glibHandle,"_Z11setCanFramejmmmxmmmmmmPh");   
+    setCanFrame(0xBEEF, msg.channel, msg.direction, msg.id, msg.timestamp_ns, msg.type, msg.dlc, msg.rtr, msg.fdf, msg.brs, msg.esi, msg.data);
 }
 
 void transactionofTxRxData()
@@ -147,7 +113,20 @@ void transactionofTxRxData()
         transactionofTxRxData(0xBEEF); 
         
         blockSendingData = true;
-        blockSendingTick = false;  
-        std::cout << "data " << ++counter;
+        blockSendingTick = false; 
     }   
+}
+
+void setReset()
+{
+    while(!reset)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(2)); 
+    }
+
+    sim_reset = 4;
+    setParameter();
+    std::cout << "reset complete" << std::endl;
+    
+    // something = true;
 }

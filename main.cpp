@@ -11,14 +11,11 @@ extern void onstart();
 extern void setParameter();
 extern bool fmi2DoStep(double communicationStepSize);
 extern void transactionofTxRxData();
-extern bool initSocketComm();
+extern bool initSocketConnFmuTick();
 extern void setReset();
-
-//
 extern bool sim_reset;
 extern bool reset;
 
-//
 std::mutex io_mutex;
 bool blockSendingTick = false;
 bool blockSendingData = true;
@@ -50,7 +47,7 @@ int main()
 {
     onPreStart();
     
-    if( initSocketComm() )
+    if( initSocketConnFmuTick() )
     {
         std::thread t1(fmi2DoStep, 0.005);
         t1.detach();
