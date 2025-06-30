@@ -54,7 +54,7 @@ public:
 	virtual IPC_RETURN_TYPE WriteData(void* pMemData, int iDataSize) = 0;
     virtual IPC_RETURN_TYPE ReadData( void* pMemData, int iDataSize,int* readDataSize ) = 0;
     virtual IPC_RETURN_TYPE ReadStatus(int* recv_value ) = 0;
-
+	virtual IPC_RETURN_TYPE waitForServerToClose() = 0;
 	virtual std::string getErrorDescription() = 0;
 	virtual ~IBaseIPC() {}
 	virtual void CloseCommunication() = 0;

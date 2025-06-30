@@ -57,7 +57,7 @@ public:
     IPC_RETURN_TYPE ReadStatus(int* recv_value ) override;
 	virtual std::string getErrorDescription() override;
 	virtual void CloseCommunication() override;
-	 
+	virtual IPC_RETURN_TYPE waitForServerToClose() override;
 	
 protected:
 	SOCKET         m_sockfd;
@@ -85,7 +85,7 @@ public:
 	IPC_RETURN_TYPE ReadStatus(int* recv_value ) override;
 	virtual std::string getErrorDescription() override;
 	virtual void CloseCommunication() override;
-
+	virtual IPC_RETURN_TYPE waitForServerToClose() override { return IPC_RETURN_SUCCESS; }
 protected:
 	SOCKET         m_sockfd;
 	std::string m_errorDescription;

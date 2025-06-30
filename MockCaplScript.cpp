@@ -9,7 +9,7 @@ extern bool blockSendingTick;
 extern bool blockSendingData;
 
 bool reset = false;
-bool something = false;
+bool capldll_initialization = false;
 
 constexpr int SIM_NORESET = 0;
 constexpr int master = 1;
@@ -27,13 +27,11 @@ typedef void (*RegisterCDLLFunc)(VIACapl *);
 typedef void (*InitializeFunc)(uint32 handle, char *ipaddress, uint32 port, uint32 ismaster);
 typedef void (*SetParamFunc)(uint32 handle, uint32 parameter);
 typedef void (*transactionofTxRxDataFunc)(uint32 handle);
-typedef void (*SetCanFrameFunc)( uint32 handle,unsigned long channel, 
-                                unsigned long direction,unsigned long canid,
-                                long long timestamp,unsigned long type,
-                                unsigned long dlc, unsigned long rtr,
-                                unsigned long fdf, unsigned long brs,
-                                unsigned long esi, unsigned char payload[]);
-
+typedef void (*SetCanFrameFunc)( uint32 handle,unsigned long channel, unsigned long direction,unsigned long canid,
+                                long long timestamp,unsigned long type, unsigned long dlc, unsigned long rtr,
+                                unsigned long fdf, unsigned long brs, unsigned long esi, unsigned char payload[]);
+                                
+                                
 void setParameter()
 {
     SetParamFunc setParamCAPLDLL = (SetParamFunc)dlsym(glibHandle, "_Z8SetParamjj");
@@ -63,10 +61,14 @@ void onPreStart()
 
 void onstart()
 {    
-    InitializeFunc initCAPLDLL = (InitializeFunc)dlsym(glibHandle, "_Z7appInitjPcjj");
-    initCAPLDLL(0xBEEF, ipaddress, port, master); 
-    std::cout << "Capl DLL Initialization: Done!" << std::endl;
-    setParameter();    
+    if(capldll_initialization != true)
+    {
+        InitializeFunc initCAPLDLL = (InitializeFunc)dlsym(glibHandle, "_Z7appInitjPcjj");
+        initCAPLDLL(0xBEEF, ipaddress, port, master); 
+        std::cout << "Capl DLL Initialization: Done!" << std::endl;
+        setParameter();   
+        capldll_initialization = true; 
+    }
 }
 
 void onAnyCanMessage(CanMessage& msg)
@@ -79,54 +81,43 @@ void transactionofTxRxData()
 {
     transactionofTxRxDataFunc transactionofTxRxData = (transactionofTxRxDataFunc)dlsym(glibHandle, "_Z21transactionofTxRxDataj");
     static int counter = 0;
-    
-    while(true)
+       
+    for (int i = 0; i < 1; ++i) 
     {
-        for (int i = 0; i < 1; ++i) 
+        CanMessage msg{};
+        msg.id = 0x100 + i;
+        msg.channel = 5;
+        msg.direction = 0;
+        msg.timestamp_ns = 1000000 * i;
+        msg.type = 1;
+        msg.dlc = 8;
+        msg.rtr = 0;
+        msg.fdf = 0;
+        msg.brs = 0;
+        msg.esi = 0;
+
+        // Example payload: fill with 0x10 + i
+        for (int j = 0; j < msg.dlc; ++j) 
         {
-            CanMessage msg{};
-            msg.id = 0x100 + i;
-            msg.channel = 5;
-            msg.direction = 0;
-            msg.timestamp_ns = 1000000 * i;
-            msg.type = 1;
-            msg.dlc = 8;
-            msg.rtr = 0;
-            msg.fdf = 0;
-            msg.brs = 0;
-            msg.esi = 0;
-    
-            // Example payload: fill with 0x10 + i
-            for (int j = 0; j < msg.dlc; ++j) 
-            {
-                msg.data[j] = 0x10 + i + j;
-            }
-    
-            onAnyCanMessage(msg);   //setcanframe one message at a time in caplserver for 10times.
+            msg.data[j] = 0x10 + i + j;
         }
-        
-        while (blockSendingData == true)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        
-        transactionofTxRxData(0xBEEF); 
-        
-        blockSendingData = true;
-        blockSendingTick = false; 
-    }   
+
+        onAnyCanMessage(msg);
+    }
+
+    transactionofTxRxData(0xBEEF); 
+      
 }
 
 void setReset()
 {
-    while(!reset)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2)); 
-    }
+    // while(!reset)
+    // {
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(2)); 
+    // }
 
     sim_reset = 4;
     setParameter();
-    std::cout << "reset complete" << std::endl;
+    std::cout << "dyn reset triggered" << std::endl;
     
-    // something = true;
 }

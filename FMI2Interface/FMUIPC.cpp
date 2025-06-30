@@ -298,6 +298,29 @@ IPC_RETURN_TYPE FMUUDP::OpenCommunication()
 	return IPC_RETURN_SUCCESS;
 }
 
+IPC_RETURN_TYPE FMUTCP::waitForServerToClose()
+{
+    char buffer[1024];
+
+    std::cout << "[fmu wait] Waiting for server to close connection...\n";
+    
+    while (true)
+    {
+        int rc = recv(m_sockfd, buffer, sizeof(buffer), 0);
+
+        if (rc == 0) {
+            std::cout << "[fmu wait] Server closed the connection (recv = 0).\n";
+            return IPC_RETURN_SUCCESS;
+        } else if (rc < 0) {
+            std::cerr << "[fmu wait] recv() failed: " << strerror(errno) << "\n";
+            return IPC_RETURN_ERROR;
+        } else {
+            std::cout << "[fmu wait] Discarding " << rc << " bytes of residual data from server...\n";
+            // Keep draining until server closes
+        }
+    }
+}
+
 IPC_RETURN_TYPE FMUTCP::WriteData(void* pMemData, int iDataSize)
 {
 	if (SOCKET_ERROR == WriteToSocket(pMemData, iDataSize, m_errorDescription))
@@ -440,7 +463,7 @@ int FMUTCP::WriteToSocket(void* buffer, int iDataSize, std::string& errorMsg)
 		return SOCKET_ERROR;
 	
 	// Check whether the connection available.
-	int iResult = send(m_sockfd, (const char*)buffer, iDataSize /*(int)strlen(sendbuf)*/, 0);
+	int iResult = send(m_sockfd, (const char*)buffer, iDataSize /*(int)strlen(sendbuf)*/, MSG_NOSIGNAL);
 	if (iResult == SOCKET_ERROR) {
 		//printf("send failed with error: %d\n", WSAGetLastError());
 		GetErrorMsgDescription(errorMsg);

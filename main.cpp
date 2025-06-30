@@ -11,8 +11,9 @@ extern void onstart();
 extern void setParameter();
 extern bool fmi2DoStep(double communicationStepSize);
 extern void transactionofTxRxData();
-extern bool initSocketConnFmuTick();
+extern bool init_SocketConn_FmuTick();
 extern void setReset();
+
 extern bool sim_reset;
 extern bool reset;
 
@@ -47,27 +48,17 @@ int main()
 {
     onPreStart();
     
-    if( initSocketConnFmuTick() )
+    init_SocketConn_FmuTick();
+    
+    // std::thread t2(setReset);
+    // t2.detach();
+    
+    for(;;)
     {
-        std::thread t1(fmi2DoStep, 0.005);
-        t1.detach();
+        fmi2DoStep(0.005);
+        onstart();
+        transactionofTxRxData();
     }
-    
-    onstart();
-    
-    std::thread t2(setReset);
-    t2.detach();
-        
-    std::thread t3(transactionofTxRxData);
-    t3.detach();
-    
-    for(int i = 0; i<5000; ++i)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
-    }
-           
-    std::thread inputThread(userCommandHandler);
-    inputThread.join();  // block main until user exits
     
     return 0;
 }
